@@ -1,26 +1,54 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import {useState } from "react";
+import useWords from "./Hooks/useWords";
+import Guesses from "./Components/Guesses";
+import useKeyboard from "./Hooks/useKeyboardProps";
+import "./styles/stylesStates.css";
+export default function WordleApp() {
+  const word = useWords() || "";
+  const [currentGuess, setCurrentGuess] = useState("");
+  const [guesses, setGuesses] = useState(Array(6).fill(null));
+  const [isgameover, setIsgameover] = useState(false);
 
-const App: React.FC = () => {
+  const submitGuess = () => {
+    if (currentGuess.length !== 5) return;
+    const nextGuesses = [...guesses];
+    nextGuesses[guesses.findIndex(g => g === null)] = currentGuess;
+    setGuesses(nextGuesses);
+    setCurrentGuess("");
+    const isCorrect = currentGuess === word;
+    if (isCorrect) {
+      setIsgameover(true);
+    }
+  };
+
+  useKeyboard({
+    onKey: (key) => {
+      if (key === "Enter") {
+        submitGuess();
+        return;
+      }
+
+      if (key === "Backspace") {
+        setCurrentGuess(prev => prev.slice(0, -1));
+        return;
+      }
+
+      if (/^[a-zA-Z]$/.test(key)) {
+        setCurrentGuess(prev =>
+          prev.length < 5 ? prev + key.toUpperCase() : prev
+        );
+      }
+    }
+  });
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <div className="word">{word}</div>
+     <Guesses
+  guesses={guesses}
+  currentGuess={currentGuess}
+  word={word}
+/>
     </div>
   );
-};
-
-export default App;
+}
